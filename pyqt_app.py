@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
 
         # creating actions to add in the file menu
         # creating a open file action
-        open_file_action = QAction("Open file", self)
+        open_file_action = QAction("&Open file", self)
 
         # setting status tip
         open_file_action.setStatusTip("Open file")
@@ -76,21 +76,21 @@ class MainWindow(QMainWindow):
         file_toolbar.addAction(open_file_action)
 
         # similarly creating a save action
-        save_file_action = QAction("Save", self)
+        save_file_action = QAction("&Save", self)
         save_file_action.setStatusTip("Save current page")
         save_file_action.triggered.connect(self.file_save)
         file_menu.addAction(save_file_action)
         file_toolbar.addAction(save_file_action)
 
         # similarly creating save action
-        saveas_file_action = QAction("Save As", self)
+        saveas_file_action = QAction("Save &As", self)
         saveas_file_action.setStatusTip("Save current page to specified file")
         saveas_file_action.triggered.connect(self.file_saveas)
         file_menu.addAction(saveas_file_action)
         file_toolbar.addAction(saveas_file_action)
 
         # for print action
-        print_action = QAction("Print", self)
+        print_action = QAction("&Print", self)
         print_action.setStatusTip("Print current page")
         print_action.triggered.connect(self.file_print)
         file_menu.addAction(print_action)
@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
         # adding actions to the tool bar and menu bar
 
         # undo action
-        undo_action = QAction("Undo", self)
+        undo_action = QAction("&Undo", self)
         # adding status tip
         undo_action.setStatusTip("Undo last change")
 
@@ -120,7 +120,7 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(undo_action)
 
         # redo action
-        redo_action = QAction("Redo", self)
+        redo_action = QAction("&Redo", self)
         redo_action.setStatusTip("Redo last change")
 
         # when triggered redo the editor
@@ -131,7 +131,7 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(redo_action)
 
         # cut action
-        cut_action = QAction("Cut", self)
+        cut_action = QAction("&Cut", self)
         cut_action.setStatusTip("Cut selected text")
 
         # when triggered cut the editor text
@@ -142,7 +142,7 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(cut_action)
 
         # copy action
-        copy_action = QAction("Copy", self)
+        copy_action = QAction("Cop&y", self)
         copy_action.setStatusTip("Copy selected text")
 
         # when triggered copy the editor text
@@ -153,7 +153,7 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(copy_action)
 
         # paste action
-        paste_action = QAction("Paste", self)
+        paste_action = QAction("&Paste", self)
         paste_action.setStatusTip("Paste from clipboard")
 
         # when triggered paste the copied text
@@ -164,7 +164,7 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(paste_action)
 
         # select all action
-        select_action = QAction("Select all", self)
+        select_action = QAction("Select &all", self)
         select_action.setStatusTip("Select all text")
 
         # when this triggered select the whole text
@@ -175,7 +175,7 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(select_action)
 
         # wrap action
-        wrap_action = QAction("Wrap text to window", self)
+        wrap_action = QAction("&Wrap text to window", self)
         wrap_action.setStatusTip("Check to wrap text to window")
 
         # making it checkable
