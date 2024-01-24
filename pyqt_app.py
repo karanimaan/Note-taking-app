@@ -50,12 +50,6 @@ class MainWindow(QMainWindow):
         # setting stats bar to the window
         self.setStatusBar(self.status)
 
-        # creating a file tool bar
-        file_toolbar = QToolBar("File")
-
-        # adding file tool bar to the window
-        self.addToolBar(file_toolbar)
-
         # creating a file menu
         file_menu = self.menuBar().addMenu("&File")
 
@@ -72,35 +66,23 @@ class MainWindow(QMainWindow):
         # adding this to file menu
         file_menu.addAction(open_file_action)
 
-        # adding this to tool bar
-        file_toolbar.addAction(open_file_action)
-
         # similarly creating a save action
         save_file_action = QAction("&Save", self)
         save_file_action.setStatusTip("Save current page")
         save_file_action.triggered.connect(self.file_save)
         file_menu.addAction(save_file_action)
-        file_toolbar.addAction(save_file_action)
 
         # similarly creating save action
         saveas_file_action = QAction("Save &As", self)
         saveas_file_action.setStatusTip("Save current page to specified file")
         saveas_file_action.triggered.connect(self.file_saveas)
         file_menu.addAction(saveas_file_action)
-        file_toolbar.addAction(saveas_file_action)
 
         # for print action
         print_action = QAction("&Print", self)
         print_action.setStatusTip("Print current page")
         print_action.triggered.connect(self.file_print)
         file_menu.addAction(print_action)
-        file_toolbar.addAction(print_action)
-
-        # creating another tool bar for editing text
-        edit_toolbar = QToolBar("Edit")
-
-        # adding this tool bar to the main window
-        self.addToolBar(edit_toolbar)
 
         # creating a edit menu bar
         edit_menu = self.menuBar().addMenu("&Edit")
@@ -116,7 +98,6 @@ class MainWindow(QMainWindow):
         undo_action.triggered.connect(self.editor.undo)
 
         # adding this to tool and menu bar
-        edit_toolbar.addAction(undo_action)
         edit_menu.addAction(undo_action)
 
         # redo action
@@ -127,7 +108,6 @@ class MainWindow(QMainWindow):
         redo_action.triggered.connect(self.editor.redo)
 
         # adding this to menu and tool bar
-        edit_toolbar.addAction(redo_action)
         edit_menu.addAction(redo_action)
 
         # cut action
@@ -138,7 +118,6 @@ class MainWindow(QMainWindow):
         cut_action.triggered.connect(self.editor.cut)
 
         # adding this to menu and tool bar
-        edit_toolbar.addAction(cut_action)
         edit_menu.addAction(cut_action)
 
         # copy action
@@ -149,7 +128,6 @@ class MainWindow(QMainWindow):
         copy_action.triggered.connect(self.editor.copy)
 
         # adding this to menu and tool bar
-        edit_toolbar.addAction(copy_action)
         edit_menu.addAction(copy_action)
 
         # paste action
@@ -160,7 +138,6 @@ class MainWindow(QMainWindow):
         paste_action.triggered.connect(self.editor.paste)
 
         # adding this to menu and tool bar
-        edit_toolbar.addAction(paste_action)
         edit_menu.addAction(paste_action)
 
         # select all action
@@ -171,7 +148,6 @@ class MainWindow(QMainWindow):
         select_action.triggered.connect(self.editor.selectAll)
 
         # adding this to menu and tool bar
-        edit_toolbar.addAction(select_action)
         edit_menu.addAction(select_action)
 
         # wrap action
