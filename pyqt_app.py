@@ -50,20 +50,20 @@ class MainWindow(QMainWindow):
         # setting stats bar to the window
         self.setStatusBar(self.status)
 
+
+        # Adding home menu
+        home_menu = self.menuBar().addMenu("&Home")
+        home_action = QAction("&Home", self)
+        home_action.setStatusTip("Home")
+        home_action.triggered.connect(self.home)
+        home_menu.addAction(home_action)
+
+
         # creating a file menu
         file_menu = self.menuBar().addMenu("&File")
-
-        # creating actions to add in the file menu
-        # creating a open file action
         open_file_action = QAction("&Open file", self)
-
-        # setting status tip
         open_file_action.setStatusTip("Open file")
-
-        # adding action to the open file
         open_file_action.triggered.connect(self.file_open)
-
-        # adding this to file menu
         file_menu.addAction(open_file_action)
 
         # similarly creating a save action
@@ -171,6 +171,10 @@ class MainWindow(QMainWindow):
 
         # showing all the components
         self.show()
+
+    
+    def home(self):
+        pass
 
     # creating dialog critical method
     # to show errors
