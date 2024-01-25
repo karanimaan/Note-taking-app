@@ -1,5 +1,6 @@
 # importing required libraries
 from PyQt5.QtGui import *
+from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
@@ -12,7 +13,7 @@ class MainWindow(QMainWindow):
 
     # constructor
     def __init__(self, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
+        super().__init__()
 
         # setting window geometry
         self.setGeometry(100, 100, 600, 400)
@@ -174,7 +175,9 @@ class MainWindow(QMainWindow):
 
     
     def home(self):
-        pass
+        self.home_window = HomeWindow()
+        # home_window.show()
+
 
     # creating dialog critical method
     # to show errors
@@ -304,6 +307,30 @@ class MainWindow(QMainWindow):
         self.editor.setLineWrapMode(1 if self.editor.lineWrapMode() == 0 else 0)
 
 
+class HomeWindow(QWidget):
+    
+    # constructor
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+        # setting window geometry
+        self.setGeometry(100, 100, 600, 400)
+
+        self.show()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Q:
+
+            confirmation = QMessageBox.question(
+                self, "Confirmation", "Are you sure you want to close the application?", 
+                QMessageBox.Yes | QMessageBox.No)
+
+            if confirmation == QMessageBox.Yes:
+                QCoreApplication.instance().quit()
+
+
+# TODO tie window to home action
+
 # drivers code
 if __name__ == '__main__':
     # creating PyQt5 application
@@ -313,7 +340,7 @@ if __name__ == '__main__':
     app.setApplicationName("PyQt5-Note")
 
     # creating a main window object
-    window = MainWindow()
+    window = HomeWindow()
 
     # loop
     app.exec_()
