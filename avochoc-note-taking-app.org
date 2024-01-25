@@ -1,0 +1,21 @@
+#+title: Scope of Note Taking App
+
+* what it looks like
+* what it needs
+
+
+* Project objectives
+
+* Deliverables
+    - It must work on Linux and Windows
+    - It has the following features:
+        - Notes can be made quickly (without a filename)
+        - It must be fully navigable with the keyboard
+
+* Schedule
+
+
+* Functional requirements
+* Non-functional requirements
+- Laptop
+* Assumptions

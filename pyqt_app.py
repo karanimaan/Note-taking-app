@@ -316,6 +316,17 @@ class HomeWindow(QWidget):
         # setting window geometry
         self.setGeometry(100, 100, 600, 400)
 
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("File Previews"))
+
+        grid_layout = QGridLayout()
+        layout.addLayout(grid_layout)
+
+        # TODO put a filepath to read from
+
+        self.preview_textEdit = QTextEdit(self)
+
+
         self.show()
 
     def keyPressEvent(self, event):
@@ -329,7 +340,6 @@ class HomeWindow(QWidget):
                 QCoreApplication.instance().quit()
 
 
-# TODO tie window to home action
 
 # drivers code
 if __name__ == '__main__':
