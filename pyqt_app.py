@@ -1,6 +1,6 @@
 # importing required libraries
 from PyQt5.QtGui import *
-from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtGui import QCloseEvent, QKeyEvent
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
@@ -9,7 +9,7 @@ import sys
 
 
 # Creating main window class
-class MainWindow(QMainWindow):
+class NoteWindow(QMainWindow):
 
     # constructor
     def __init__(self, *args, **kwargs):
@@ -322,12 +322,22 @@ class HomeWindow(QWidget):
         grid_layout = QGridLayout()
         layout.addLayout(grid_layout)
 
-        # TODO put a filepath to read from
+        filepaths_txt_path = 'filepaths.txt'
+        try:
+            with open(filepaths_txt_path, 'r') as f:
+                self.filepaths = f.readlines()
+        except FileNotFoundError:
+            # Handle the case when the file doesn't exist
+            self.filepaths = []
+            print(filepaths_txt_path + ' not found. So it is being created.')
+            with open(filepaths_txt_path, 'w') as f:
+                pass
 
-        self.preview_textEdit = QTextEdit(self)
+
 
 
         self.show()
+
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Q:
@@ -338,6 +348,9 @@ class HomeWindow(QWidget):
 
             if confirmation == QMessageBox.Yes:
                 QCoreApplication.instance().quit()
+
+        elif event.key() == Qt.Key_N:
+            self.note_window = NoteWindow()
 
 
 
