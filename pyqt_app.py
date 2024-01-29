@@ -7,9 +7,63 @@ from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
 import os
 import sys
+import json
+
+json_path = ''
+
+class HomeWindow(QWidget):
+    
+    # constructor
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+        # setting window geometry
+        self.setGeometry(100, 100, 600, 400)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("File Previews"))
+
+        grid_layout = QGridLayout()
+        layout.addLayout(grid_layout)
+
+        self.pathfile_path = 'filepaths.txt'
+        try:
+            with open(self.pathfile_path, 'r') as f:
+                self.filepaths = f.readlines()
+        except FileNotFoundError:
+            # Handle the case when the file doesn't exist
+            self.filepaths = []
+            print(self.pathfile_path + ' not found. So it is being created.')
+            with open(self.pathfile_path, 'w') as f:
+                pass
 
 
-# Creating main window class
+        self.show()
+
+        
+        self.default_dir = r'C:\Users\Karan\Documents\Avochoc\Note taking app\Default note location'
+
+
+        self.json_path = r'C:\Users\Karan\Documents\Avochoc\Note taking app\quick-notes.json'
+
+
+    def keyPressEvent(self, event):
+
+        # Quit
+        if event.key() == Qt.Key_Q:
+
+            confirmation = QMessageBox.question(
+                self, "Confirmation", "Are you sure you want to close the application?", 
+                QMessageBox.Yes | QMessageBox.No)
+
+            if confirmation == QMessageBox.Yes:
+                QCoreApplication.instance().quit()
+
+        # New
+        elif event.key() == Qt.Key_N:
+            self.note_window = NoteWindow(self.default_dir)
+            self.close()
+
 class NoteWindow(QMainWindow):
 
     # constructor
@@ -39,6 +93,11 @@ class NoteWindow(QMainWindow):
         filename = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         self.path = os.path.join(default_dir, filename)
         self._save_to_path(self.path)
+
+        # Save to json
+        text = self.editor.toPlainText()
+        with open(json_path, 'w') as f:
+            
 
 
         # Adding home menu
@@ -172,56 +231,6 @@ class NoteWindow(QMainWindow):
 
     def edit_toggle_wrap(self):
         self.editor.setLineWrapMode(1 if self.editor.lineWrapMode() == 0 else 0)
-
-
-class HomeWindow(QWidget):
-    
-    # constructor
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-
-        # setting window geometry
-        self.setGeometry(100, 100, 600, 400)
-
-        layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("File Previews"))
-
-        grid_layout = QGridLayout()
-        layout.addLayout(grid_layout)
-
-        self.pathfile_path = 'filepaths.txt'
-        try:
-            with open(self.pathfile_path, 'r') as f:
-                self.filepaths = f.readlines()
-        except FileNotFoundError:
-            # Handle the case when the file doesn't exist
-            self.filepaths = []
-            print(self.pathfile_path + ' not found. So it is being created.')
-            with open(self.pathfile_path, 'w') as f:
-                pass
-
-        self.show()
-
-        
-        self.default_dir = r'C:\Users\Karan\Documents\Avochoc\Note taking app\Default note location'
-
-
-    def keyPressEvent(self, event):
-
-        # Quit
-        if event.key() == Qt.Key_Q:
-
-            confirmation = QMessageBox.question(
-                self, "Confirmation", "Are you sure you want to close the application?", 
-                QMessageBox.Yes | QMessageBox.No)
-
-            if confirmation == QMessageBox.Yes:
-                QCoreApplication.instance().quit()
-
-        # New
-        elif event.key() == Qt.Key_N:
-            self.note_window = NoteWindow(self.default_dir)
-            self.close()
 
 
 # drivers code
