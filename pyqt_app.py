@@ -7,9 +7,10 @@ from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
 import os
 import sys
-import json
+from tinydb import TinyDB, Query
 
-json_path = ''
+
+json_path = r'C:\Users\Karan\Documents\Avochoc\Note taking app\quick-notes.json'
 
 class HomeWindow(QWidget):
     
@@ -25,6 +26,9 @@ class HomeWindow(QWidget):
 
         grid_layout = QGridLayout()
         layout.addLayout(grid_layout)
+
+        # Populate grid_layout with quick note previews
+        self.populate_note_previews(grid_layout)
 
         self.pathfile_path = 'filepaths.txt'
         try:
@@ -44,7 +48,28 @@ class HomeWindow(QWidget):
         self.default_dir = r'C:\Users\Karan\Documents\Avochoc\Note taking app\Default note location'
 
 
-        self.json_path = r'C:\Users\Karan\Documents\Avochoc\Note taking app\quick-notes.json'
+    def open_note(self, note):
+        title = note.get('title', 'Untitled')
+        content = note.get('content', '')
+
+        self.note_window = NoteWindow(title=title, content=content)
+        self.close()
+
+
+    def populate_note_previews(self, grid_layout):
+        db = TinyDB(json_path)
+        notes = db.all()
+
+        for index, note in enumerate(notes):
+            title = note.get('title', 'Untitled')
+            label = QLabel(title)
+            label.setToolTip(title)  # Set tooltip with the note title
+            label.setStyleSheet("border: 1px solid black; padding: 5px;")
+
+            # Add a double-click event to open the note when a label is clicked
+            label.mouseDoubleClickEvent = lambda event, note=note: self.open_note(note)
+
+            grid_layout.addWidget(label, index // 3, index % 3)
 
 
     def keyPressEvent(self, event):
@@ -61,13 +86,15 @@ class HomeWindow(QWidget):
 
         # New
         elif event.key() == Qt.Key_N:
-            self.note_window = NoteWindow(self.default_dir)
+            self.note_window = NoteWindow()
             self.close()
+
+
 
 class NoteWindow(QMainWindow):
 
     # constructor
-    def __init__(self, default_dir):
+    def __init__(self, title=None, content=None):
         super().__init__()
         self.setGeometry(100, 100, 600, 400)
         layout = QVBoxLayout()
@@ -89,14 +116,22 @@ class NoteWindow(QMainWindow):
         self.setStatusBar(self.status)
 
 
-        # Save to default file location
-        filename = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        self.path = os.path.join(default_dir, filename)
-        self._save_to_path(self.path)
 
-        # Save to json
-        text = self.editor.toPlainText()
-        with open(json_path, 'w') as f:
+        # Save to json if new
+
+        if title is None:
+            date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.title = date
+
+            db = TinyDB(json_path)
+            db.insert({
+                'title': date,
+                'content': '',
+                'date': date    # date created
+            })
+        else:
+            self.editor.setPlainText(content)
+            self.update_title(title)
             
 
 
@@ -177,8 +212,18 @@ class NoteWindow(QMainWindow):
         self.show()
 
 
+    def closeEvent(self, a0: QCloseEvent) -> None:
+        # save content
+        Note = Query()
+        with TinyDB(json_path) as db:
+            db.update({'content': self.editor.toPlainText()},
+                      Note.title == self.title)
+        return super().closeEvent(a0)
+
+
     def home(self):
         self.home_window = HomeWindow()
+
 
     def dialog_critical(self, s):
         dlg = QMessageBox(self)
