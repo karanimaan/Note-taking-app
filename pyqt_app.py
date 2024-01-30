@@ -8,6 +8,15 @@ from PyQt5.QtPrintSupport import *
 import os
 import sys
 from tinydb import TinyDB, Query
+from PyQt5 import QtCore
+import PyQt5
+
+
+if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+    PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+    PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 
 json_path = r'C:\Users\Karan\Documents\Avochoc\Note taking app\quick-notes.json'
@@ -19,7 +28,7 @@ class HomeWindow(QWidget):
         super().__init__()
 
         # setting window geometry
-        self.setGeometry(100, 100, 600, 400)
+        self.center_on_screen()
 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("File Previews"))
@@ -48,6 +57,14 @@ class HomeWindow(QWidget):
         self.default_dir = r'C:\Users\Karan\Documents\Avochoc\Note taking app\Default note location'
 
 
+    def center_on_screen(self):
+        screen_geometry = QDesktopWidget().screenGeometry()
+        window_geometry = self.frameGeometry()
+        x = (screen_geometry.width() - window_geometry.width()) // 2
+        y = (screen_geometry.height() - window_geometry.height()) // 2
+        self.move(x, y)
+
+
     def open_note(self, note):
         title = note.get('title', 'Untitled')
         content = note.get('content', '')
@@ -60,16 +77,21 @@ class HomeWindow(QWidget):
         db = TinyDB(json_path)
         notes = db.all()
 
+
         for index, note in enumerate(notes):
             title = note.get('title', 'Untitled')
-            label = QLabel(title)
-            label.setToolTip(title)  # Set tooltip with the note title
-            label.setStyleSheet("border: 1px solid black; padding: 5px;")
+            button = QPushButton(title)
+            button.setStyleSheet("border: 1px solid black; padding: 5px;")
 
             # Add a double-click event to open the note when a label is clicked
-            label.mouseDoubleClickEvent = lambda event, note=note: self.open_note(note)
+            button.mouseDoubleClickEvent = lambda event, note=note: self.open_note(note)
 
-            grid_layout.addWidget(label, index // 3, index % 3)
+            grid_layout.addWidget(button, index // 3, index % 3)
+
+        item = grid_layout.itemAtPosition(0, 0)
+        # item.widget().setStyleSheet("QLabel { background-color : red; color : blue; }");
+        # item.widget().setFocus()
+
 
 
     def keyPressEvent(self, event):
@@ -93,33 +115,35 @@ class HomeWindow(QWidget):
 
 class NoteWindow(QMainWindow):
 
-    # constructor
     def __init__(self, title=None, content=None):
         super().__init__()
-        self.setGeometry(100, 100, 600, 400)
-        layout = QVBoxLayout()
 
-        self.editor = QPlainTextEdit()
         fixedfont = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-        fixedfont.setPointSize(12)
+        fixedfont.setPointSize(18)  # doesn't work
+        
+        self.editor = QPlainTextEdit()
         self.editor.setFont(fixedfont)
 
-        # self.path holds the path of the currently open file.
-        # If none, we haven't got a file open yet (or creating new).
-        self.path = None
-
+        self.title_bar = QLineEdit()
+        self.title_bar.setFont(fixedfont)
+        
+        layout = QVBoxLayout()
+        layout.addWidget(self.title_bar)
         layout.addWidget(self.editor)
+
         container = QWidget()
         container.setLayout(layout)
+
         self.setCentralWidget(container)
         self.status = QStatusBar()
         self.setStatusBar(self.status)
 
 
 
-        # Save to json if new
-
         if title is None:
+
+            # Create json entry
+
             date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             self.title = date
 
@@ -129,18 +153,33 @@ class NoteWindow(QMainWindow):
                 'content': '',
                 'date': date    # date created
             })
-        else:
-            self.editor.setPlainText(content)
-            self.update_title(title)
-            
 
+        else:
+
+            # Load json entry
+            self.setWindowTitle(f"{title} - QuickNote")
+            self.editor.setPlainText(content)
+
+        self.add_to_menuBar()
+        self.show()
+
+            
+    def keyPressEvent(self, a0: QKeyEvent) -> None:
+        if a0.key() == Qt.Key_Escape:
+            self.go_home()
+        return super().keyPressEvent(a0)
+
+    def add_to_menuBar(self):
 
         # Adding home menu
-        home_menu = self.menuBar().addMenu("&Home")
+
         home_action = QAction("&Home", self)
         home_action.setStatusTip("Home")
-        home_action.triggered.connect(self.home)
-        home_menu.addAction(home_action)
+        home_action.triggered.connect(self.go_home)
+
+        home_menu = self.menuBar().addMenu("&Home")
+        home_menu.triggered.connect(self.go_home)
+        # home_menu.addAction(home_action)
 
 
         # creating a file menu
@@ -208,8 +247,9 @@ class NoteWindow(QMainWindow):
         wrap_action.triggered.connect(self.edit_toggle_wrap)
         edit_menu.addAction(wrap_action)
 
-        self.update_title()
-        self.show()
+
+        # 
+
 
 
     def closeEvent(self, a0: QCloseEvent) -> None:
@@ -221,8 +261,9 @@ class NoteWindow(QMainWindow):
         return super().closeEvent(a0)
 
 
-    def home(self):
+    def go_home(self):
         self.home_window = HomeWindow()
+        self.close()
 
 
     def dialog_critical(self, s):
@@ -270,9 +311,6 @@ class NoteWindow(QMainWindow):
         dlg = QPrintDialog()
         if dlg.exec_():
             self.editor.print_(dlg.printer())
-
-    def update_title(self):
-        self.setWindowTitle("%s - PyQt5 Notepad" % (os.path.basename(self.path) if self.path else "Untitled"))
 
     def edit_toggle_wrap(self):
         self.editor.setLineWrapMode(1 if self.editor.lineWrapMode() == 0 else 0)
