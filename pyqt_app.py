@@ -1,11 +1,9 @@
-# importing required libraries
 from datetime import datetime
 from PyQt5.QtGui import *
 from PyQt5.QtGui import QCloseEvent, QKeyEvent
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
-import os
 import sys
 from tinydb import TinyDB, Query
 from PyQt5 import QtCore
@@ -19,81 +17,66 @@ if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
     PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 
-json_path = r'C:\Users\Karan\Documents\Avochoc\Note taking app\quick-notes.json'
+json_path = 'quick-notes.json'
+
+
+class NotePreviewWidget(QWidget):
+    def __init__(self, note):
+        super().__init__()
+
+        layout = QVBoxLayout(self)
+
+        title = note.get('title', 'Untitled')
+        content = note.get('content', '')
+
+        # QLabel for title
+        title_label = QLabel(title)
+        title_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title_label)
+
+        # QLabel for preview
+        preview_label = QLabel(content)
+        preview_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(preview_label)
+
+        self.setLayout(layout)
+
 
 class HomeWindow(QWidget):
     
     # constructor
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         super().__init__()
 
-        # setting window geometry
-        self.center_on_screen()
-
-        layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("File Previews"))
-
-        grid_layout = QGridLayout()
-        layout.addLayout(grid_layout)
-
-        # Populate grid_layout with quick note previews
-        self.populate_note_previews(grid_layout)
-
-        self.pathfile_path = 'filepaths.txt'
-        try:
-            with open(self.pathfile_path, 'r') as f:
-                self.filepaths = f.readlines()
-        except FileNotFoundError:
-            # Handle the case when the file doesn't exist
-            self.filepaths = []
-            print(self.pathfile_path + ' not found. So it is being created.')
-            with open(self.pathfile_path, 'w') as f:
-                pass
-
-
-        self.show()
-
-        
-        self.default_dir = r'C:\Users\Karan\Documents\Avochoc\Note taking app\Default note location'
-
-
-    def center_on_screen(self):
-        screen_geometry = QDesktopWidget().screenGeometry()
-        window_geometry = self.frameGeometry()
-        x = (screen_geometry.width() - window_geometry.width()) // 2
-        y = (screen_geometry.height() - window_geometry.height()) // 2
-        self.move(x, y)
-
-
-    def open_note(self, note):
-        title = note.get('title', 'Untitled')
-        content = note.get('content', '')
-
-        self.note_window = NoteWindow(title=title, content=content)
-        self.close()
-
-
-    def populate_note_previews(self, grid_layout):
         db = TinyDB(json_path)
         notes = db.all()
 
 
+        grid_layout = QGridLayout()
         for index, note in enumerate(notes):
-            title = note.get('title', 'Untitled')
-            button = QPushButton(title)
-            button.setStyleSheet("border: 1px solid black; padding: 5px;")
-
-            # Add a double-click event to open the note when a label is clicked
-            button.mouseDoubleClickEvent = lambda event, note=note: self.open_note(note)
-
-            grid_layout.addWidget(button, index // 3, index % 3)
+            note_preview = NotePreviewWidget(note)
+            note_preview.mousePressEvent = lambda event, note=note: self.open_note(note)   # must be lambda, since we are overriding mousePressEvent function
+            grid_layout.addWidget(note_preview, index // 3, index % 3)
+            
 
         item = grid_layout.itemAtPosition(0, 0)
-        # item.widget().setStyleSheet("QLabel { background-color : red; color : blue; }");
-        # item.widget().setFocus()
+
+        vertical_layout = QVBoxLayout(self)
+        vertical_layout.addWidget(QLabel("File Previews"))
+        vertical_layout.addLayout(grid_layout)
+
+        self.show()
+
+        
+
+    def open_note(self, note):
+        title = note.get('title', 'Untitled')
+        content = note.get('content', '')
+        self.note_window = NoteWindow(title, content)
+        self.close()
 
 
-
+    
     def keyPressEvent(self, event):
 
         # Quit
@@ -112,14 +95,16 @@ class HomeWindow(QWidget):
             self.close()
 
 
-
 class NoteWindow(QMainWindow):
 
     def __init__(self, title=None, content=None):
         super().__init__()
 
+        self.title = title
+        self.content = content
+        
         fixedfont = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-        fixedfont.setPointSize(18)  # doesn't work
+        fixedfont.setPointSize(18)
         
         self.editor = QPlainTextEdit()
         self.editor.setFont(fixedfont)
@@ -140,7 +125,7 @@ class NoteWindow(QMainWindow):
 
 
 
-        if title is None:
+        if self.title is None:
 
             # Create json entry
 
@@ -149,7 +134,7 @@ class NoteWindow(QMainWindow):
 
             db = TinyDB(json_path)
             db.insert({
-                'title': date,
+                'title': self.title,
                 'content': '',
                 'date': date    # date created
             })
@@ -157,8 +142,9 @@ class NoteWindow(QMainWindow):
         else:
 
             # Load json entry
-            self.setWindowTitle(f"{title} - QuickNote")
-            self.editor.setPlainText(content)
+            self.setWindowTitle(f"{self.title} - QuickNote")
+            self.title_bar.setText(self.title)
+            self.editor.setPlainText(self.content)
 
         self.add_to_menuBar()
         self.show()
@@ -248,22 +234,19 @@ class NoteWindow(QMainWindow):
         edit_menu.addAction(wrap_action)
 
 
-        # 
 
-
-
-    def closeEvent(self, a0: QCloseEvent) -> None:
-        # save content
+    def closeEvent(self, a0: QCloseEvent):
+        # save content to json
         Note = Query()
         with TinyDB(json_path) as db:
-            db.update({'content': self.editor.toPlainText()},
-                      Note.title == self.title)
-        return super().closeEvent(a0)
+            db.update({'title': self.title_bar.text(), 'content': self.editor.toPlainText()}, Note.title == self.title)
+        super().closeEvent(a0)
+            
 
 
     def go_home(self):
-        self.home_window = HomeWindow()
         self.close()
+        self.home_window = HomeWindow()
 
 
     def dialog_critical(self, s):
@@ -322,7 +305,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # setting application name
-    app.setApplicationName("PyQt5-Note")
+    app.setApplicationName("QuickNote")
 
     # creating a main window object
     window = HomeWindow()

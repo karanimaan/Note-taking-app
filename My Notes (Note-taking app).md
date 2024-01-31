@@ -11,4 +11,11 @@ Reason to not copy and paste code verbatim:
 
     It may not be readable to you. It may be too verbose. The code should be customize     to you / your program
 
-- [ ] Replace update_title() with self.setWindowTitle(f"{self.title} - QuickNote")
+- [x] Replace update_title() with self.setWindowTitle(f"{self.title} - QuickNote")
+
+
+
+- [x] Save title in json
+- [ ] try out tableView instead of gridLayout (not essential though)
+
+- [ ] Add delete entries functionality
