@@ -13,9 +13,14 @@ Reason to not copy and paste code verbatim:
 
 - [x] Replace update_title() with self.setWindowTitle(f"{self.title} - QuickNote")
 
-
-
 - [x] Save title in json
-- [ ] try out tableView instead of gridLayout (not essential though)
 
-- [ ] Add delete entries functionality
+- [x] try out tableView instead of gridLayout (not essential though)
+
+- [ ] Add delete entries functionality (soft delete (flag to hide entry (record)))
+
+- [ ] Figure out pyinstaller with json file
+
+- [ ] Use QListWidget instead of QGridLayout (for keyboard navigatability)
+
+I could've just made preview_lbl to preview_btn (for keyboard navigatability)

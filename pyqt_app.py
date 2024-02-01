@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 from PyQt5.QtGui import *
 from PyQt5.QtGui import QCloseEvent, QKeyEvent
 from PyQt5.QtWidgets import *
@@ -9,7 +10,6 @@ from tinydb import TinyDB, Query
 from PyQt5 import QtCore
 import PyQt5
 
-
 if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
     PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
@@ -17,10 +17,10 @@ if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
     PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 
-json_path = 'quick-notes.json'
+json_filename = 'quick-notes.json'
 
 
-class NotePreviewWidget(QWidget):
+class NotePreviewWidget(QFrame):
     def __init__(self, note):
         super().__init__()
 
@@ -32,6 +32,7 @@ class NotePreviewWidget(QWidget):
         # QLabel for title
         title_label = QLabel(title)
         title_label.setAlignment(Qt.AlignCenter)
+        title_label.setStyleSheet('font-weight: bold; font-size: 12pt')
         layout.addWidget(title_label)
 
         # QLabel for preview
@@ -39,7 +40,17 @@ class NotePreviewWidget(QWidget):
         preview_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(preview_label)
 
+        
         self.setLayout(layout)
+        self.setStyleSheet("""
+                        NotePreviewWidget {
+                            background-color: #F0F0F0; /* Set your desired background color */
+                            border: 1px solid #CCCCCC; /* Set a border for distinction */
+                            margin: 5px; /* Add some margin */
+                            padding: 5px; /* Add padding to content */
+                        }
+                    """)
+
 
 
 class HomeWindow(QWidget):
@@ -48,23 +59,37 @@ class HomeWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        db = TinyDB(json_path)
-        notes = db.all()
+        self.showMaximized()
 
-
-        grid_layout = QGridLayout()
-        for index, note in enumerate(notes):
-            note_preview = NotePreviewWidget(note)
-            note_preview.mousePressEvent = lambda event, note=note: self.open_note(note)   # must be lambda, since we are overriding mousePressEvent function
-            grid_layout.addWidget(note_preview, index // 3, index % 3)
-            
-
-        item = grid_layout.itemAtPosition(0, 0)
+        hint_lbl = QLabel('Press "n" to create a new note')
+        hint_lbl.setStyleSheet('font-size: 10pt')
+        hint_lbl.setAlignment(Qt.AlignCenter)
 
         vertical_layout = QVBoxLayout(self)
-        vertical_layout.addWidget(QLabel("File Previews"))
-        vertical_layout.addLayout(grid_layout)
+        vertical_layout.addWidget(hint_lbl)
+            
 
+        if not os.path.isfile(json_filename):   # if json file doesn't exist 
+            with open(json_filename, 'w') as db:    # create file
+                pass
+
+        else:
+
+            with TinyDB(json_filename) as db:
+                notes = db.all()
+
+            grid_layout = QGridLayout()
+            for index, note in enumerate(notes):
+                note_preview = NotePreviewWidget(note)
+                note_preview.mousePressEvent = lambda event, note=note: self.open_note(note)   # must be lambda, since we are overriding mousePressEvent function
+                grid_layout.addWidget(note_preview, index // 3, index % 3)
+
+            item = grid_layout.itemAtPosition(0, 0)
+            item.widget().setFocus()
+
+            vertical_layout.addLayout(grid_layout)            
+
+        
         self.show()
 
         
@@ -100,17 +125,16 @@ class NoteWindow(QMainWindow):
     def __init__(self, title=None, content=None):
         super().__init__()
 
+        self.showMaximized()
+        
         self.title = title
         self.content = content
         
-        fixedfont = QFontDatabase.systemFont(QFontDatabase.FixedFont)
-        fixedfont.setPointSize(18)
-        
         self.editor = QPlainTextEdit()
-        self.editor.setFont(fixedfont)
+        self.editor.setStyleSheet('font-size: 18pt')
 
         self.title_bar = QLineEdit()
-        self.title_bar.setFont(fixedfont)
+        self.title_bar.setStyleSheet('font-size: 22pt')
         
         layout = QVBoxLayout()
         layout.addWidget(self.title_bar)
@@ -132,7 +156,7 @@ class NoteWindow(QMainWindow):
             date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             self.title = date
 
-            db = TinyDB(json_path)
+            db = TinyDB(json_filename)
             db.insert({
                 'title': self.title,
                 'content': '',
@@ -238,7 +262,7 @@ class NoteWindow(QMainWindow):
     def closeEvent(self, a0: QCloseEvent):
         # save content to json
         Note = Query()
-        with TinyDB(json_path) as db:
+        with TinyDB(json_filename) as db:
             db.update({'title': self.title_bar.text(), 'content': self.editor.toPlainText()}, Note.title == self.title)
         super().closeEvent(a0)
             
