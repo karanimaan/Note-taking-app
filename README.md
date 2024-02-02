@@ -9,7 +9,9 @@ QuickNote is a note taking app, made for efficient usability. For one, using the
 
 ## PyInstaller
 
-Make sure you have the [Requirements](https://pyinstaller.org/en/stable/requirements.html#pyinstaller-requirements) installed, and then install PyInstaller from PyPI:
+This section explains how to create a binary from source. Binaries can be found on the Releases page.
+
+PyInstaller bundles a Python application and all its dependencies into a single package. Make sure you have the [Requirements](https://pyinstaller.org/en/stable/requirements.html#pyinstaller-requirements) installed, and then install PyInstaller from PyPI:
 
 ```
 pip install -U pyinstaller
