@@ -19,8 +19,14 @@ Reason to not copy and paste code verbatim:
 
 - [ ] Add delete entries functionality (soft delete (flag to hide entry (record)))
 
-- [ ] Figure out pyinstaller with json file
+- [x] Figure out pyinstaller with json file
 
-- [ ] Use QListWidget instead of QGridLayout (for keyboard navigatability)
+- [x] Use QListWidget instead of QGridLayout (for keyboard navigatability)
 
-I could've just made preview_lbl to preview_btn (for keyboard navigatability)
+
+
+keypressevent doesn't work after adding qlistwidget. 
+
+This was a real headache.
+
+    It's because there was focus was on qlistwidget. It's weird but that's how key press event works. So I had to use QShortcut. Works for "n" and "q" but not for "Return". That needs to be addressed.

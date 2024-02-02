@@ -51,6 +51,8 @@ class NotePreviewWidget(QFrame):
                             padding: 5px; /* Add padding to content */
                         }
                     """)
+        
+        self.enter_shortcut = QShortcut(QKeySequence("Return"), self)
 
 
 
@@ -60,7 +62,7 @@ class HomeWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.showMaximized()
+        # self.showMaximized()
 
         hint_lbl = QLabel('Press "n" to create a new note')
         hint_lbl.setStyleSheet('font-size: 10pt')
@@ -79,22 +81,41 @@ class HomeWindow(QWidget):
             with TinyDB(json_filename) as db:
                 notes = db.all()
 
-            list_widget = QTableWidget()
+            list_widget = QListWidget(self)
             for index, note in enumerate(notes):
                 note_preview = NotePreviewWidget(note)
+                note_preview.enter_shortcut.activated.connect(lambda: self.open_note(note))
+
                 item = QListWidgetItem(list_widget)
+                item.setSizeHint(note_preview.sizeHint())
+
                 list_widget.addItem(item)   
                 list_widget.setItemWidget(item, note_preview)
-                note_preview.mousePressEvent = lambda event, note=note: self.open_note(note)   # must be lambda, since we are overriding mousePressEvent function
 
 
-            vertical_layout.addWidget(list_widget)            
+            vertical_layout.addWidget(list_widget) 
 
-        
+
+        self.n_shortcut = QShortcut(QKeySequence("n"), self)
+        self.n_shortcut.activated.connect(self.new_note)
+
+        self.q_shortcut = QShortcut(QKeySequence("q"), self)
+        self.q_shortcut.activated.connect(self.quit)
+
+   
+
+
+        # self.setFocus()
         self.show()
 
-        
+    @pyqtSlot()
+    def quit(self):
+        confirmation = QMessageBox.question(self, "Confirmation", "Are you sure you want to close the application?", QMessageBox.Yes | QMessageBox.No)
+        if confirmation == QMessageBox.Yes:
+            QCoreApplication.instance().quit()
 
+
+    @pyqtSlot()
     def open_note(self, note):
         title = note.get('title', 'Untitled')
         content = note.get('content', '')
@@ -102,7 +123,11 @@ class HomeWindow(QWidget):
         self.close()
 
 
-    
+    @pyqtSlot()
+    def new_note(self):
+        self.note_window = NoteWindow()
+        self.close()
+
     def keyPressEvent(self, event):
 
         # Quit
@@ -126,7 +151,7 @@ class NoteWindow(QMainWindow):
     def __init__(self, title=None, content=None):
         super().__init__()
 
-        self.showMaximized()
+        # self.showMaximized()
         
         self.title = title
         self.content = content
@@ -151,20 +176,9 @@ class NoteWindow(QMainWindow):
         self.setStatusBar(self.status)
 
 
-
         if self.title is None:
 
-            # Create json entry
-
-            date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            self.title = date
-
-            db = TinyDB(json_filename)
-            db.insert({
-                'title': self.title,
-                'content': '',
-                'date': date    # date created
-            })
+            self.date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')    # date created (id for record)            
 
         else:
 
@@ -193,7 +207,7 @@ class NoteWindow(QMainWindow):
 
         home_menu = self.menuBar().addMenu("&Home")
         home_menu.triggered.connect(self.go_home)
-        # home_menu.addAction(home_action)
+        home_menu.addAction(home_action)
 
 
         # creating a file menu
@@ -266,8 +280,18 @@ class NoteWindow(QMainWindow):
     def closeEvent(self, a0: QCloseEvent):
         # save content to json
         Note = Query()
-        with TinyDB(json_filename) as db:
-            db.update({'title': self.title_bar.text(), 'content': self.editor.toPlainText()}, Note.title == self.title)
+        title = self.title_bar.text()
+        content = self.editor.toPlainText()
+        if content != '':
+            with TinyDB(json_filename) as db:
+                if db.search(Note.date == self.date) == []:
+                    db.insert({
+                        'title': title,
+                        'content': content,
+                        'date': self.date    # date created
+                    })
+                else:
+                    db.update({'title': title, 'content': content}, Note.date == self.date)
         super().closeEvent(a0)
             
 
