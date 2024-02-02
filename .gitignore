@@ -1,3 +1,6 @@
 .idea/
-quick-notes.json
 dist/
+quick-notes.json
+build/
+quick-note.spec
+
