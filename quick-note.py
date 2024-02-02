@@ -64,6 +64,8 @@ class HomeWindow(QWidget):
 
         # self.showMaximized()
 
+        self.setGeometry(200, 100, 600, 400)
+
         hint_lbl = QLabel('Press "n" to create a new note')
         hint_lbl.setStyleSheet('font-size: 10pt')
         hint_lbl.setAlignment(Qt.AlignCenter)
@@ -84,7 +86,8 @@ class HomeWindow(QWidget):
             list_widget = QListWidget(self)
             for index, note in enumerate(notes):
                 note_preview = NotePreviewWidget(note)
-                note_preview.enter_shortcut.activated.connect(lambda: self.open_note(note))
+                note_preview.enter_shortcut.activated.connect(lambda: self.open_note(note)) # not working, must fix (this is to open note by pressing enter when focused)
+                note_preview.mousePressEvent = lambda event, note=note: self.open_note(note)   # must be lambda, since we are overriding mousePressEvent function
 
                 item = QListWidgetItem(list_widget)
                 item.setSizeHint(note_preview.sizeHint())
@@ -92,21 +95,16 @@ class HomeWindow(QWidget):
                 list_widget.addItem(item)   
                 list_widget.setItemWidget(item, note_preview)
 
-
             vertical_layout.addWidget(list_widget) 
-
 
         self.n_shortcut = QShortcut(QKeySequence("n"), self)
         self.n_shortcut.activated.connect(self.new_note)
 
         self.q_shortcut = QShortcut(QKeySequence("q"), self)
         self.q_shortcut.activated.connect(self.quit)
-
    
-
-
-        # self.setFocus()
         self.show()
+
 
     @pyqtSlot()
     def quit(self):
@@ -117,9 +115,7 @@ class HomeWindow(QWidget):
 
     @pyqtSlot()
     def open_note(self, note):
-        title = note.get('title', 'Untitled')
-        content = note.get('content', '')
-        self.note_window = NoteWindow(title, content)
+        self.note_window = NoteWindow(note)
         self.close()
 
 
@@ -128,34 +124,16 @@ class HomeWindow(QWidget):
         self.note_window = NoteWindow()
         self.close()
 
-    def keyPressEvent(self, event):
-
-        # Quit
-        if event.key() == Qt.Key_Q:
-
-            confirmation = QMessageBox.question(
-                self, "Confirmation", "Are you sure you want to close the application?", 
-                QMessageBox.Yes | QMessageBox.No)
-
-            if confirmation == QMessageBox.Yes:
-                QCoreApplication.instance().quit()
-
-        # New
-        elif event.key() == Qt.Key_N:
-            self.note_window = NoteWindow()
-            self.close()
 
 
 class NoteWindow(QMainWindow):
 
-    def __init__(self, title=None, content=None):
+    def __init__(self, note=None):
         super().__init__()
 
         # self.showMaximized()
-        
-        self.title = title
-        self.content = content
-        
+
+        self.setGeometry(200, 100, 600, 400)
 
         self.title_bar = QLineEdit()
         self.title_bar.setStyleSheet('font-size: 22pt')
@@ -176,13 +154,12 @@ class NoteWindow(QMainWindow):
         self.setStatusBar(self.status)
 
 
-        if self.title is None:
-
+        if note is None:
             self.date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')    # date created (id for record)            
-
         else:
-
-            # Load json entry
+            self.title = note.get('title', 'Untitled')
+            self.content = note.get('content', '')
+            self.date = note.get('date', '')    # error handling needs to be done
             self.setWindowTitle(f"{self.title} - QuickNote")
             self.title_bar.setText(self.title)
             self.editor.setPlainText(self.content)
@@ -196,6 +173,7 @@ class NoteWindow(QMainWindow):
         if a0.key() == Qt.Key_Escape:
             self.go_home()
         return super().keyPressEvent(a0)
+
 
     def add_to_menuBar(self):
 
@@ -274,7 +252,6 @@ class NoteWindow(QMainWindow):
         wrap_action.setChecked(True)
         wrap_action.triggered.connect(self.edit_toggle_wrap)
         edit_menu.addAction(wrap_action)
-
 
 
     def closeEvent(self, a0: QCloseEvent):

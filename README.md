@@ -15,14 +15,12 @@ Make sure you have the [Requirements](https://pyinstaller.org/en/stable/require
 pip install -U pyinstaller
 ```
 
-Open terminal and navigate to the directory where quick-note.py file is located, then build the app with the following command:
+Open terminal and navigate to the directory where *quick-note.py* file is located, then build the app with the following command:
 
 ```
-pyinstaller --onefile quick-note.py
+pyinstaller quick-note.py
 ```
 
-The bundled application should now be available in the dist folder.
-
-
+The bundled application should now be available in the _dist_ folder.
 
 Have a look at https://pyinstaller.org/ for more information.
