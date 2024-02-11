@@ -10,11 +10,15 @@ from tinydb import TinyDB, Query
 from PyQt5 import QtCore
 import PyQt5
 
+
+# Enabling GUI scaling
+
 if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
     PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
     PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+
 
 
 json_filename = 'quick-notes.json'
@@ -26,7 +30,7 @@ class NotePreviewWidget(QFrame):
 
         layout = QVBoxLayout(self)
 
-        title = note.get('title', 'Untitled')
+        title = note.get('title', '')
         content = note.get('content', '')
 
         if title != '':
